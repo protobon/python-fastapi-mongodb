@@ -1,2 +1,2 @@
-alias: warehouse-test
-uri: connection-uri
+alias: warehouseDB
+uri: mongodb://localhost:27017

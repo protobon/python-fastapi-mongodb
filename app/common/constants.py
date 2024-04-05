@@ -1,4 +1,5 @@
 class MongoDB:
+    main = "mongodb"
     alias = "alias"
     uri = "uri"
 

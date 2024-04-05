@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
+from bson.objectid import ObjectId
 
 
 class CustomBaseModel(BaseModel):
@@ -16,6 +17,8 @@ class CustomBaseModel(BaseModel):
                 result[key] = value.dict()
             elif isinstance(value, datetime):
                 result[key] = value.__str__()
+            elif isinstance(value, ObjectId):
+                result[key] = str(value)
             elif isinstance(value, list) and all(isinstance(item, CustomBaseModel) for item in value):
                 result[key] = [item.dict() for item in value]
 
@@ -31,13 +34,11 @@ class Header(CustomBaseModel):
 
 
 class Body(CustomBaseModel):
-    result: bool
-    error: str
+    success: bool
+    error: Optional[str] = None
     timestamp: str
-    message: str
-    data: dict
+    data: Optional[dict] = None
 
 
 class Response(CustomBaseModel):
-    header: Header
     body: Body

@@ -1,15 +1,24 @@
 import yaml
 from app.common.constants import Constants
+from app.db.mongodb import MongoEngine
 
 
 class Config:
     config = dict()
     mongo = dict()
 
-    def __init__(self, config: dict):
-        self.config = config
+    @classmethod
+    def init(cls, path: str):
+        if path:
+            with open(path) as f:
+                cls.config = yaml.load(f, Loader=yaml.FullLoader)
+        if cls.config:
+            if cls.config.get(Constants.MONGODB.main):
+                with open(cls.config[Constants.MONGODB.main]) as f:
+                    cls.mongo = yaml.load(f, Loader=yaml.FullLoader)
+                if cls.mongo:
+                    cls.load_mongodb(uri=cls.mongo["uri"], alias=cls.mongo["alias"])
 
-    def load_mongodb(self):
-        mongo_config = dict()
-        yaml.load(self.config[Constants.MONGODB], mongo_config)
-
+    @classmethod
+    def load_mongodb(cls, uri: str, alias: str):
+        MongoEngine(uri=uri, alias=alias)
