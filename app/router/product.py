@@ -1,9 +1,13 @@
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Body
 from fastapi.responses import JSONResponse
+from redis import StrictRedis
+
+from app.db.redis import get_redis_client
+from app.model.product import Product
+from app.cache.product import ProductCache
 from app.schema.product import (ProductSchema, FetchProductSchema, FetchProductBody,
                                 FetchProductResponse, NewProductSchema, NewProductBody, NewProductResponse)
-from app.model.product import Product
 
 
 product = APIRouter(
@@ -49,6 +53,37 @@ async def fetch_products():
                 title=getattr(p, "title", ""),
                 quantity=getattr(p, "quantity", 0),
                 createdAt=getattr(p, "createdAt", None)
+            ))
+
+        fetch_schema = FetchProductSchema(
+            products=product_schemas,
+            total=len(product_schemas)
+        )
+        body = FetchProductBody(
+            success=True,
+            data=fetch_schema,
+            timestamp=datetime.now().isoformat()
+        )
+        response = FetchProductResponse(body=body).dict()
+        return JSONResponse(content=response, status_code=200)
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@product.get(path="/all/cache",
+             description="Fetch all products from cache",
+             response_model=FetchProductResponse)
+async def fetch_products_cache(redis_client: StrictRedis = Depends(get_redis_client)):
+    try:
+        all_products = ProductCache(client=redis_client).get_all(ProductCache.name)
+        product_schemas = []
+        for p in all_products:
+            product_schemas.append(ProductSchema(
+                id=p.get("_id"),
+                title=p.get("title"),
+                quantity=p.get("quantity"),
+                createdAt=p.get("createdAt")
             ))
 
         fetch_schema = FetchProductSchema(

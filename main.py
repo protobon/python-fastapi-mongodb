@@ -6,7 +6,7 @@ import click
 @click.command()
 @click.option('--conf', default='config.yml', type=click.Path())
 def run_server(conf):
-    Config.init(path=conf)
+    Config(path=conf)
     run()
 
 
