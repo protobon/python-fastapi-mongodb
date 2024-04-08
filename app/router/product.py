@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Body
 from fastapi.responses import JSONResponse
 from redis import StrictRedis
 
-from app.db.redis import get_redis_client
+from app.util.redis import get_redis_client
 from app.model.product import Product
 from app.cache.product import ProductCache
 from app.schema.product import (ProductSchema, FetchProductSchema, FetchProductBody,
@@ -76,7 +76,7 @@ async def fetch_products():
              response_model=FetchProductResponse)
 async def fetch_products_cache(redis_client: StrictRedis = Depends(get_redis_client)):
     try:
-        all_products = ProductCache(client=redis_client).get_all(ProductCache.name)
+        all_products = ProductCache(client=redis_client).get_all()
         product_schemas = []
         for p in all_products:
             product_schemas.append(ProductSchema(

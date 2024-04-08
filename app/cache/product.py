@@ -15,8 +15,8 @@ class ProductCache(Cache):
             pipeline = []
             super().__init__(client, Product, self.name, pipeline, self.refresh_in_seconds)
 
-    def get_all(self, name: str):
+    def get_all(self):
         return super().get_all(self.name)
 
     def get_by_id(self, item_id: str):
-        return super().get_by_id(item_id)
+        return super().get_by_id(f"{self.name}:{item_id}")
