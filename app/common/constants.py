@@ -1,15 +1,14 @@
 class MongoDB:
-    main = "mongodb"
-    alias = "alias"
-    uri = "uri"
+    alias = "MONGODB_ALIAS"
+    uri = "MONGODB_URI"
 
 
 class Redis:
-    main = "redis"
-    host = "host"
-    port = "port"
+    host = "REDIS_HOST"
+    port = "REDIS_PORT"
+    password = "REDIS_PASSWORD"
 
 
-class Constants:
+class EnvConstants:
     MONGODB = MongoDB()
     REDIS = Redis()
