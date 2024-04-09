@@ -1,16 +1,18 @@
+import asyncio
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Body
 from fastapi.responses import JSONResponse
 from redis import StrictRedis
+from loguru import logger
 
 from app.util.redis import get_redis_client
-from app.model.product import Product
+from app.model.product import Product, get_products_by_filter, get_product_by_id
 from app.cache.product import ProductCache
 from app.schema.product import (ProductSchema, FetchProductSchema, FetchProductBody,
-                                FetchProductResponse, NewProductSchema, NewProductBody, NewProductResponse)
+                                FetchProductResponse, NewProductSchema, ProductBody, ProductResponse)
 
 
-product = APIRouter(
+router = APIRouter(
     prefix="/product",
     tags=["product"],
     #dependencies=[Depends(get_token_header)],
@@ -18,41 +20,44 @@ product = APIRouter(
 )
 
 
-@product.post(path="/new",
-              description="Create a new product",
-              response_model=ProductSchema)
-async def create_product(p: NewProductSchema = Body(...)):
-    new_product = Product(
-        title=getattr(p, "title", ""),
-        quantity=getattr(p, "quantity", 0),
-        createdAt=datetime.now()
-    ).save()
-    body = NewProductBody(
-        success=True,
-        timestamp=datetime.now().isoformat(),
-        data=ProductSchema(
-            id=str(new_product.id),
-            title=getattr(p, "title"),
-            quantity=getattr(p, "quantity"),
-            createdAt=getattr(p, "createdAt"))
-    )
-    response = NewProductResponse(body=body).dict()
-    return JSONResponse(content=response, status_code=200)
+@router.post(path="/new",
+             description="Create a new product",
+             response_model=ProductResponse)
+async def create_product(product: NewProductSchema = Body(...), redis_client: StrictRedis = Depends(get_redis_client)):
+    try:
+        product_dict = product.dict()
+        new_product = Product(**product_dict).save()
+        product_dict["_id"] = str(new_product.id)
+        asyncio.ensure_future(ProductCache.update_one(redis_client, product_dict))
+        body = ProductBody(
+            success=True,
+            timestamp=datetime.now().isoformat(),
+            data=ProductSchema(
+                id=str(new_product.id),
+                title=getattr(product, "title"),
+                quantity=getattr(product, "quantity"),
+                createdAt=getattr(product, "createdAt"))
+        )
+        response = ProductResponse(body=body).dict()
+        return JSONResponse(content=response, status_code=200)
+    except Exception as e:
+        logger.exception("create_product")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@product.get(path="/all",
-             description="Fetch all products",
-             response_model=FetchProductResponse)
+@router.get(path="/all",
+            description="Fetch all products",
+            response_model=FetchProductResponse)
 async def fetch_products():
     try:
         all_products = Product.objects().all()
         product_schemas = []
-        for p in all_products:
+        for product in all_products:
             product_schemas.append(ProductSchema(
-                id=str(p.id),
-                title=getattr(p, "title", ""),
-                quantity=getattr(p, "quantity", 0),
-                createdAt=getattr(p, "createdAt", None)
+                id=str(product.id),
+                title=getattr(product, "title", ""),
+                quantity=getattr(product, "quantity", 0),
+                createdAt=getattr(product, "createdAt", None)
             ))
 
         fetch_schema = FetchProductSchema(
@@ -67,23 +72,23 @@ async def fetch_products():
         response = FetchProductResponse(body=body).dict()
         return JSONResponse(content=response, status_code=200)
     except Exception as e:
-        print(e)
+        logger.exception("fetch_products")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@product.get(path="/all/cache",
-             description="Fetch all products from cache",
-             response_model=FetchProductResponse)
+@router.get(path="/all/cache",
+            description="Fetch all products from cache",
+            response_model=FetchProductResponse)
 async def fetch_products_cache(redis_client: StrictRedis = Depends(get_redis_client)):
     try:
         all_products = ProductCache(client=redis_client).get_all()
         product_schemas = []
-        for p in all_products:
+        for product in all_products:
             product_schemas.append(ProductSchema(
-                id=p.get("_id"),
-                title=p.get("title"),
-                quantity=p.get("quantity"),
-                createdAt=p.get("createdAt")
+                id=product.get("_id"),
+                title=product.get("title"),
+                quantity=product.get("quantity"),
+                createdAt=product.get("createdAt")
             ))
 
         fetch_schema = FetchProductSchema(
@@ -98,16 +103,47 @@ async def fetch_products_cache(redis_client: StrictRedis = Depends(get_redis_cli
         response = FetchProductResponse(body=body).dict()
         return JSONResponse(content=response, status_code=200)
     except Exception as e:
-        print(e)
+        logger.exception("fetch_products_cache")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@product.get("/{product_id}")
-async def read_product(product_id: str):
-    #  raise HTTPException(status_code=404, detail="Product not found")
-    return dict()
+@router.get(path="/{product_id}",
+            description="Get a product by id",
+            response_model=ProductResponse)
+async def get_product(product_id: str):
+    try:
+        product = get_product_by_id(product_id)
+        body = ProductBody(
+            success=True,
+            timestamp=datetime.now().isoformat(),
+            data=ProductSchema(
+                id=str(product.id),
+                title=getattr(product, "title"),
+                quantity=getattr(product, "quantity"),
+                createdAt=getattr(product, "createdAt"))
+        )
+        response = ProductResponse(body=body).dict()
+        return JSONResponse(content=response, status_code=200)
+    except Exception as e:
+        logger.exception("get_product")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@product.put("/{product_id}")
-async def update_product(product_id: str):
-    return dict()
+@router.put(path="/update",
+            description="Update a product, replaces whole document",
+            response_model=ProductResponse)
+async def update_product(product: ProductSchema = Body(...), redis_client: StrictRedis = Depends(get_redis_client)):
+    try:
+        product_dict = product.dict()
+        Product(**product_dict).save()
+        asyncio.ensure_future(ProductCache.update_one(redis_client, product_dict))
+        body = ProductBody(
+            success=True,
+            timestamp=datetime.now().isoformat(),
+            data=product
+        )
+        response = ProductResponse(body=body).dict()
+        return JSONResponse(content=response, status_code=200)
+    except Exception as e:
+        logger.exception("get_product")
+        raise HTTPException(status_code=500, detail=str(e))
