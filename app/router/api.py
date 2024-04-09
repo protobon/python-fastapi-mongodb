@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.router.product import product
+from app.router.product import router as product
 
 api_router = APIRouter(prefix="/api")
 
