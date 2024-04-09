@@ -11,6 +11,14 @@ class ProductSchema(CustomBaseModel):
     createdAt: datetime = Field(None, description="Creation date")
 
 
+class ProductBody(Body):
+    data: Optional[ProductSchema] = None
+
+
+class ProductResponse(Response):
+    body: ProductBody
+
+
 class FetchProductSchema(CustomBaseModel):
     products: List[ProductSchema] = []
     total: int = 0
@@ -28,11 +36,3 @@ class NewProductSchema(CustomBaseModel):
     title: str = Field(None, description="Product title", min_length=2, max_length=125)
     quantity: int = Field(0, description="Quantity (units)", ge=0)
     createdAt: datetime = Field(None, description="Creation date")
-
-
-class NewProductBody(Body):
-    data: Optional[ProductSchema] = None
-
-
-class NewProductResponse(Response):
-    body: NewProductBody
