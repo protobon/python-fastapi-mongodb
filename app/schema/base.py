@@ -15,12 +15,12 @@ class CustomBaseModel(BaseModel):
                 result[key] = value.default
             if isinstance(value, CustomBaseModel):
                 result[key] = value.dict()
+            elif isinstance(value, list) and all(isinstance(item, CustomBaseModel) for item in value):
+                result[key] = [item.dict() for item in value]
             elif isinstance(value, datetime):
                 result[key] = value.__str__()
             elif isinstance(value, ObjectId):
                 result[key] = str(value)
-            elif isinstance(value, list) and all(isinstance(item, CustomBaseModel) for item in value):
-                result[key] = [item.dict() for item in value]
 
         return result
 
