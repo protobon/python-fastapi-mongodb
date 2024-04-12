@@ -1,14 +1,16 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 import uvicorn
 import time
 
 from app.router.api import api_router
+from app.common.constants import EnvConstants as Env
 
 
-def get_application() -> FastAPI:
+def run(config):
     app = FastAPI(
-        title="warehouseAPI"
+        title=config.app[Env.APP.name]
     )
 
     app.add_middleware(
@@ -19,12 +21,8 @@ def get_application() -> FastAPI:
         allow_headers=["*"],
     )
 
-    app.include_router(api_router, prefix="/api")
-    return app
-
-
-def run():
-    app = get_application()
+    app.mount("/login", StaticFiles(directory="app/auth/login", html=True), name="login")
+    app.include_router(api_router)
 
     @app.middleware("http")
     async def add_process_time_header(request, call_next):
@@ -34,4 +32,4 @@ def run():
         response.headers["X-Process-Time"] = str(f'{process_time:0.4f} sec')
         return response
 
-    uvicorn.run(app)
+    uvicorn.run(app, host=config.app[Env.APP.host], port=config.app[Env.APP.port])

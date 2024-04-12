@@ -7,8 +7,8 @@ from app.start import run
 
 def run_server():
     try:
-        Config()
-        run()
+        config = Config()
+        run(config)
     except Exception:
         logger.exception("Run Failed")
 
