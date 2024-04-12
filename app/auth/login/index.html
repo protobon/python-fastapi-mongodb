@@ -1,0 +1,93 @@
+<html>
+
+<head>
+  <title>Authentication</title>
+  <style>
+    input { margin: 10px; min-width: 280px; min-height: 40px; font-size: 15px; }
+    span { background: #e2e2e2; overflow-wrap: break-word; }
+</style>
+</head>
+
+<body>
+    <form>
+        <div> 
+            <input id="email" type="text" placeholder="Email...">
+        </div>
+        <div>
+            <input id="password" type="password" placeholder="Password...">
+        </div>
+        <br>
+        <div>
+            <button id="sign-in">Get Token</button>
+            <button id="sign-out">Sign Out</button>
+        </div>
+    </form>
+    <br>
+    <div>
+        <b><textarea readonly rows="15" cols="100" id="token"></textarea></b>
+        <br>
+        <div>
+            <button id="copy-token" style="visibility: hidden;">Copiar Token</button>
+        </div>
+    </div>
+  <script src="https://www.gstatic.com/firebasejs/live/3.0/firebase.js"></script>
+  
+  <script>
+    var config = {
+    "apiKey": "AIzaSyBseGauNX77C4LIXBL7aodDb0Hfx8XlGVg",
+    "authDomain": "personal-projects-15b8e.firebaseapp.com",
+    "projectId": "personal-projects-15b8e",
+    "storageBucket": "personal-projects-15b8e.appspot.com",
+    "messagingSenderId": "837066819166",
+    "appId": "1:837066819166:web:417356bc1c079d5f7956cf"
+    };
+    firebase.initializeApp(config);
+  </script>
+
+  <script>
+    firebase.auth().onAuthStateChanged(function(user) {    
+        if (user) {
+            user.getToken().then(token => { 
+                document.getElementById("token").value = token;
+                document.getElementById('copy-token').style.visibility = 'visible';
+            });
+        } else {
+            document.getElementById("token").value = "";
+        }
+    });
+  </script>
+
+  <script>    
+    document.querySelector('#sign-in').addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      let email = document.querySelector('#email').value;
+      let password = document.querySelector('#password').value
+      let credential = firebase.auth.EmailAuthProvider.credential(email, password);
+      let auth = firebase.auth();
+      let currentUser = auth.currentUser;
+      if (currentUser == null) {
+            auth.signInWithCredential(credential);
+      }
+    });
+    
+    document.querySelector('#sign-out').addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        firebase.auth().signOut();
+        document.getElementById('copy-token').style.visibility = 'hidden';
+        document.getElementById("token").value = "";
+    });
+    
+    document.querySelector('#copy-token').addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        let copyText = document.getElementById("token");
+        copyText.select();
+        document.execCommand("copy");
+    }); 
+  </script>
+
+</body>
+
+</html>

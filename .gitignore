@@ -183,3 +183,7 @@ fabric.properties
 
 # idea folder, uncomment if you don't need it
 .idea
+
+# Firebase Credentials
+firebase_service_account.json
+firebase_config.json
