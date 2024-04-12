@@ -14,16 +14,15 @@ from app.schema.product import (ProductSchema, FetchProductSchema, FetchProductB
 
 router = APIRouter(
     prefix="/product",
-    tags=["product"],
-    #dependencies=[Depends(get_token_header)],
-    responses={404: {"description": "Not found"}},
+    tags=["product"]
 )
 
 
 @router.post(path="/new",
              description="Create a new product",
              response_model=ProductResponse)
-async def create_product(product: NewProductSchema = Body(...), redis_client: StrictRedis = Depends(get_redis_client)):
+async def create_product(product: NewProductSchema = Body(...),
+                         redis_client: StrictRedis = Depends(get_redis_client)):
     try:
         product_dict = product.dict()
         new_product = Product(**product_dict).save()
