@@ -186,4 +186,4 @@ fabric.properties
 
 # Firebase Credentials
 firebase_service_account.json
-firebase_config.json
+index.html
