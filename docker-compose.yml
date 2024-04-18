@@ -14,7 +14,7 @@ services:
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - FIREBASE_CONFIG=${FIREBASE_CONFIG}
+      - FIREBASE_CONFIG=${FIREBASE_CONFIG}  # path to .json file
       - APP_NAME=${APP_NAME}
       - APP_HOST=${APP_HOST}
       - APP_PORT=${APP_PORT}
