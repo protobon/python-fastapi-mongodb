@@ -7,27 +7,27 @@ Firebase for user authentication and cache support with Redis.
 
 ### Project structure:
 ```commandline
-????auth
-?       firebase.py      # User authentication
-?           
-????cache
-?       base.py          # Base cache
-?       product.py
-?
-????common
-?       config.py        # App configuration (singleton)
-?       constants.py     # Environment variables
-?
-????model                # Each class is a Mongodb collection
-?       product.py
-?
-????router
-?       api.py           # Base router
-?       product.py
-?
-????schema
-?       base.py          # Base transaction schema
-?       product.py
+auth
+       firebase.py      # User authentication
+           
+cache
+       base.py          # Base cache
+       product.py
+
+common
+       config.py        # App configuration (singleton)
+       constants.py     # Environment variables
+
+model                # Each class is a Mongodb collection
+       product.py
+
+router
+       api.py           # Base router
+       product.py
+
+schema
+       base.py          # Base transaction schema
+       product.py
 ```
 
 ### Deploy
