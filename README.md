@@ -1,18 +1,19 @@
 ## Python FastAPI - Async HTTP Server 
 
-#### This application was created to show in a list of projects that I've made for my portfolio website. It is an example model but with little configuration adjustments, it can be ready for production.
+#### This application was created to show in a list of projects that I've made for my portfolio website. It is an example model but can be used for production.
 Details:<br/>
-CRUD operations with MongoDB ODM classes and JSON. <br/>
-Firebase for user authentication and cache support with Redis.
+CRUD operations to a MongoDB Database using ODM classes and JSON. <br/>
+Firebase for user authentication and cache with Redis.
 
-### Project structure:
+### App structure:
 ```commandline
 auth
        firebase.py      # User authentication
            
 cache
        base.py          # Base cache
-       product.py
+       product.py       # Product cache, inherits from BaseCache
+       .                # Other cache classes...
 
 common
        config.py        # App configuration (singleton)
@@ -34,8 +35,8 @@ schema
 All the project configuration and dependencies are specified in the **DOCKERFILE** and **docker-compose.yml** file.<br/>
 
 **App dependencies:**<br/>
-**Docker:** mongodb and redis instances running and connected to the same docker network<br/>
-**Firebase:** .json configuration file of your firebase project to manage user authentication
+**Docker:** you need one mongodb and one redis instance running and connected to the same docker network as this app<br/>
+**Firebase:** .json configuration file of your firebase project to manage user authentication, this API validates users from a firebase bearer token inside the "Authentication" request header.
 
 
 **Run:**
